@@ -938,3 +938,175 @@ body {
         text-align: center;
     }
 }
+
+/* ==========================================
+   Utility Features & Light Theme Overrides
+   ========================================== */
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+/* Light Theme Variable Overrides */
+body.light-theme {
+    --bg-dark: #f3f4f6; /* Soft light gray */
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --bg-card-hover: rgba(255, 255, 255, 0.98);
+    --border-color: rgba(0, 0, 0, 0.08);
+    --border-color-hover: rgba(139, 92, 246, 0.4);
+    
+    --text-primary: #111827; /* Dark slate */
+    --text-secondary: #4b5563; /* Medium gray */
+    --text-muted: #6b7280; /* Gray */
+    
+    --primary-color: #6d28d9; /* Darker purple for readability */
+    --primary-glow: rgba(109, 40, 217, 0.15);
+    
+    --x-color: #000000;
+    --x-bg: #f3f4f6;
+    
+    background-image: 
+        radial-gradient(at 10% 20%, rgba(139, 92, 246, 0.04) 0px, transparent 50%),
+        radial-gradient(at 90% 80%, rgba(59, 130, 246, 0.03) 0px, transparent 50%);
+}
+
+/* Light Theme Custom Tweaks */
+body.light-theme .theme-toggle-btn {
+    background: rgba(0, 0, 0, 0.03);
+    color: var(--text-secondary);
+}
+
+body.light-theme .theme-toggle-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--text-primary);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+body.light-theme .logo-wrapper {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .status-indicator-wrapper {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .search-wrapper input {
+    background: rgba(255, 255, 255, 0.9);
+    color: #111827;
+}
+
+body.light-theme .search-wrapper input:focus {
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
+}
+
+body.light-theme .tag-btn {
+    background: rgba(0, 0, 0, 0.02);
+}
+
+body.light-theme .tag-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+body.light-theme .btn-secondary {
+    background: rgba(0, 0, 0, 0.02);
+    color: var(--text-primary);
+}
+
+body.light-theme .btn-secondary:hover {
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.15);
+}
+
+body.light-theme .card-content code {
+    background: rgba(0, 0, 0, 0.05);
+    color: #db2777; /* Deep Pink */
+    border-color: rgba(0, 0, 0, 0.03);
+}
+
+body.light-theme .card-content em {
+    color: #374151;
+}
+
+body.light-theme .card-content a {
+    color: #2563eb;
+    border-bottom-color: rgba(37, 99, 235, 0.4);
+}
+
+body.light-theme .card-content a:hover {
+    color: #1d4ed8;
+}
+
+/* Modal Light Theme */
+body.light-theme .modal-card {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.12);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 40px rgba(139, 92, 246, 0.06);
+}
+
+body.light-theme .modal-header {
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .close-modal-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .note-summary-context {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .x-composer-box {
+    background: rgba(0, 0, 0, 0.01);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-theme .composer-textarea {
+    color: var(--text-primary);
+}
+
+body.light-theme .composer-suggestions {
+    border-top-color: rgba(0, 0, 0, 0.06);
+}
+
+body.light-theme .progress-ring-bg {
+    stroke: rgba(0, 0, 0, 0.06);
+}
+
+body.light-theme .modal-footer {
+    border-top-color: rgba(0, 0, 0, 0.08);
+    background: rgba(0, 0, 0, 0.01);
+}
+
+body.light-theme .btn-tweet {
+    background-color: #000000;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+body.light-theme .btn-tweet:hover {
+    background-color: #1c1c1c;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+

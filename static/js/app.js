@@ -1,8 +1,40 @@
 document.addEventListener('DOMContentLoaded', () => {
     // State Variables
     let allUpdates = [];
+    let currentFilteredUpdates = [];
     let currentFilterType = 'all';
     let searchQuery = '';
+    
+    // Theme Toggle Logic
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const sunIcon = themeToggleBtn.querySelector('.theme-icon-sun');
+    const moonIcon = themeToggleBtn.querySelector('.theme-icon-moon');
+    
+    // Check local storage for preference
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        if (sunIcon && moonIcon) {
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+        }
+    }
+    
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-theme');
+            const isLight = document.body.classList.contains('light-theme');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            
+            if (isLight) {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            } else {
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            }
+        });
+    }
     
     // Character Limit for X (Twitter)
     const TWEET_LIMIT = 280;
@@ -136,6 +168,9 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         }
         
+        // Save current filtered list for CSV export
+        currentFilteredUpdates = filtered;
+        
         // Render
         if (filtered.length === 0) {
             showSection('empty');
@@ -196,6 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <a class="card-action-btn" href="${update.link}" target="_blank" rel="noopener noreferrer" title="View Source Release Note">
                             <i data-lucide="external-link" style="width: 16px; height: 16px;"></i>
                         </a>` : ''}
+                        <button class="card-action-btn btn-copy-card" title="Copy to clipboard">
+                            <i data-lucide="copy" style="width: 16px; height: 16px;"></i>
+                        </button>
                         <button class="card-action-btn btn-tweet-card" title="Tweet this update">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -208,6 +246,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             
+            // Attach event listener for Copy button
+            const copyBtn = card.querySelector('.btn-copy-card');
+            copyBtn.addEventListener('click', async () => {
+                const textToCopy = `BigQuery ${update.type} (${update.date}): ${update.raw_text}${update.link ? `\n\nRead more: ${update.link}` : ''}`;
+                try {
+                    await navigator.clipboard.writeText(textToCopy);
+                    // Micro-interaction: temporarily change copy icon to checkmark
+                    const icon = copyBtn.querySelector('i');
+                    icon.setAttribute('data-lucide', 'check');
+                    copyBtn.style.color = 'var(--color-feature)';
+                    copyBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                    lucide.createIcons();
+                    
+                    setTimeout(() => {
+                        icon.setAttribute('data-lucide', 'copy');
+                        copyBtn.style.color = '';
+                        copyBtn.style.borderColor = '';
+                        lucide.createIcons();
+                    }, 2000);
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                }
+            });
+
             // Attach event listener for Tweet button
             const tweetBtn = card.querySelector('.btn-tweet-card');
             tweetBtn.addEventListener('click', () => {
@@ -346,6 +408,41 @@ document.addEventListener('DOMContentLoaded', () => {
         currentFilterType = 'all';
         applyFiltersAndRender();
     });
+
+    // Export CSV Button
+    const exportCsvBtn = document.getElementById('export-csv-btn');
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', () => {
+            if (currentFilteredUpdates.length === 0) {
+                alert('No updates to export.');
+                return;
+            }
+            
+            const headers = ['Date', 'Type', 'Content', 'Link'];
+            const rows = currentFilteredUpdates.map(u => [
+                u.date,
+                u.type,
+                u.raw_text,
+                u.link
+            ]);
+            
+            // Escape quotes and format CSV values
+            const csvContent = [
+                headers.map(h => `"${h.replace(/"/g, '""')}"`).join(','),
+                ...rows.map(row => row.map(val => `"${(val || '').replace(/"/g, '""')}"`).join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `bigquery_release_notes_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    }
 
     // Modal Close
     closeModalBtn.addEventListener('click', closeTweetComposer);

@@ -41,6 +41,11 @@
             </div>
 
             <div class="header-actions">
+                <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Light/Dark Mode">
+                    <i data-lucide="sun" class="theme-icon-sun"></i>
+                    <i data-lucide="moon" class="theme-icon-moon" style="display: none;"></i>
+                </button>
+
                 <div class="status-indicator-wrapper">
                     <span class="status-dot green"></span>
                     <span id="cache-status-text" class="status-text">Connected</span>
@@ -94,6 +99,11 @@
                         <button class="tag-btn" data-type="deprecation">Deprecations</button>
                     </div>
                 </div>
+
+                <button id="export-csv-btn" class="btn btn-secondary" style="margin-left: auto;" title="Export current filtered updates to CSV">
+                    <i data-lucide="download"></i>
+                    <span>Export CSV</span>
+                </button>
             </div>
         </section>
 
