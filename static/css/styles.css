@@ -1110,3 +1110,96 @@ body.light-theme .btn-tweet:hover {
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
+/* ==========================================
+   Smooth Transitions & Layout Enhancements
+   ========================================== */
+
+/* Apply global theme-aware transitions */
+body, 
+.update-card, 
+.btn, 
+.toolbar, 
+.modal-card, 
+.search-wrapper input, 
+.stat-card, 
+.status-indicator-wrapper, 
+.tag-btn, 
+.card-action-btn,
+.x-composer-box,
+.note-summary-context,
+.composer-textarea {
+    transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease, transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 2-Column Responsive Grid on Desktop */
+@media (min-width: 900px) {
+    .updates-grid {
+        grid-template-columns: repeat(2, 1fr);
+        align-items: start;
+    }
+}
+
+/* ==========================================
+   Toast Notification System
+   ========================================== */
+.toast-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 2000;
+    pointer-events: none;
+}
+
+.toast {
+    background: rgba(17, 24, 39, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    padding: 0.85rem 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    pointer-events: auto;
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.toast.active {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+.toast-success-icon {
+    color: var(--color-feature);
+}
+
+body.light-theme .toast {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.12);
+    color: #111827;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* ==========================================
+   Search Highlighting
+   ========================================== */
+mark.search-highlight {
+    background-color: rgba(245, 158, 11, 0.35); /* Amber highlight */
+    color: inherit;
+    border-radius: 0.2rem;
+    padding: 0 0.15rem;
+    box-shadow: 0 0 4px rgba(245, 158, 11, 0.15);
+}
+
+body.light-theme mark.search-highlight {
+    background-color: rgba(245, 158, 11, 0.5);
+}
+
+

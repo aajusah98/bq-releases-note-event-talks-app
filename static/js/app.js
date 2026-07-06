@@ -5,6 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFilterType = 'all';
     let searchQuery = '';
     
+    // Relative Timestamp Variables
+    let lastFetchedTimestamp = 0;
+    let relativeTimeInterval = null;
+    
     // Theme Toggle Logic
     const themeToggleBtn = document.getElementById('theme-toggle');
     const sunIcon = themeToggleBtn.querySelector('.theme-icon-sun');
@@ -85,6 +89,30 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Lucide Icons
     lucide.createIcons();
 
+    // Relative Time Sync Updater
+    function updateRelativeTime() {
+        if (!lastFetchedTimestamp) return;
+        const now = Math.floor(Date.now() / 1000);
+        const diff = now - lastFetchedTimestamp;
+        
+        let text = '';
+        if (diff < 5) {
+            text = 'just now';
+        } else if (diff < 60) {
+            text = `${diff}s ago`;
+        } else {
+            const mins = Math.floor(diff / 60);
+            text = `${mins}m ago`;
+        }
+        
+        const isCache = cacheStatusText.getAttribute('data-is-cache') === 'true';
+        if (isCache) {
+            cacheStatusText.textContent = `Cached (Synced ${text})`;
+        } else {
+            cacheStatusText.textContent = `Live Feed (Synced ${text})`;
+        }
+    }
+
     // Fetch Release Notes
     async function fetchReleaseNotes(force = false) {
         // Show loading state
@@ -106,19 +134,31 @@ document.addEventListener('DOMContentLoaded', () => {
             applyFiltersAndRender();
             
             // Update cache/connection status indicator
+            lastFetchedTimestamp = result.timestamp;
             if (result.source === 'cache') {
-                const formattedTime = new Date(result.timestamp * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                cacheStatusText.textContent = `Cached (at ${formattedTime})`;
+                cacheStatusText.setAttribute('data-is-cache', 'true');
                 statusDot.className = 'status-dot orange';
+                if (force) {
+                    showToast('Loaded cached release notes (no internet changes).', 'info');
+                }
             } else {
-                cacheStatusText.textContent = 'Live Feed (Synced)';
+                cacheStatusText.setAttribute('data-is-cache', 'false');
                 statusDot.className = 'status-dot green';
+                if (force) {
+                    showToast('Fetched fresh release notes from Google Cloud!', 'success');
+                }
+            }
+            
+            updateRelativeTime();
+            if (!relativeTimeInterval) {
+                relativeTimeInterval = setInterval(updateRelativeTime, 10000); // update relative text every 10s
             }
             
         } catch (error) {
             console.error('Error fetching release notes:', error);
             errorMessage.textContent = `Could not fetch release notes. Details: ${error.message}`;
             showSection('error');
+            showToast('Failed to fetch release notes.', 'error');
         } finally {
             refreshBtn.disabled = false;
             refreshIcon.classList.remove('icon-spin');
@@ -180,6 +220,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Highlight matched text inside HTML content (ignoring HTML tags themselves)
+    function highlightText(htmlContent, query) {
+        if (!query || !query.trim()) return htmlContent;
+        const escapedQuery = query.trim().replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const regex = new RegExp(`(<[^>]+>)|(${escapedQuery})`, 'gi');
+        
+        return htmlContent.replace(regex, (match, tag, text) => {
+            if (tag) return tag; // Ignore HTML tags
+            if (text) return `<mark class="search-highlight">${text}</mark>`;
+            return match;
+        });
+    }
+
     // Render Cards in Grid
     function renderGrid(updates) {
         updatesGrid.innerHTML = '';
@@ -216,6 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.setProperty('--card-accent-rgb', accentRgb);
             card.style.setProperty('--card-border-glow', `rgba(${accentRgb}, 0.25)`);
             
+            // Apply highlighting to card content if search query exists
+            const contentHtml = highlightText(update.content, searchQuery);
+            
             // Build card structure
             card.innerHTML = `
                 <div class="card-header">
@@ -242,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>
                 <div class="card-content">
-                    ${update.content}
+                    ${contentHtml}
                 </div>
             `;
             
@@ -252,6 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const textToCopy = `BigQuery ${update.type} (${update.date}): ${update.raw_text}${update.link ? `\n\nRead more: ${update.link}` : ''}`;
                 try {
                     await navigator.clipboard.writeText(textToCopy);
+                    showToast('Copied release note to clipboard!', 'success');
                     // Micro-interaction: temporarily change copy icon to checkmark
                     const icon = copyBtn.querySelector('i');
                     icon.setAttribute('data-lucide', 'check');
@@ -267,6 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 2000);
                 } catch (err) {
                     console.error('Failed to copy text: ', err);
+                    showToast('Failed to copy to clipboard.', 'error');
                 }
             });
 
@@ -414,7 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (exportCsvBtn) {
         exportCsvBtn.addEventListener('click', () => {
             if (currentFilteredUpdates.length === 0) {
-                alert('No updates to export.');
+                showToast('No updates to export.', 'error');
                 return;
             }
             
@@ -441,6 +499,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            
+            showToast(`Exported ${currentFilteredUpdates.length} updates to CSV!`, 'success');
         });
     }
 
@@ -496,6 +556,39 @@ document.addEventListener('DOMContentLoaded', () => {
         // Close modal
         closeTweetComposer();
     });
+
+    // Toast Notification System Helper
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        
+        let iconHtml = '<i data-lucide="check-circle" class="toast-success-icon" style="width: 18px; height: 18px;"></i>';
+        if (type === 'error') {
+            iconHtml = '<i data-lucide="alert-triangle" style="width: 18px; height: 18px; color: var(--color-deprecation)"></i>';
+        } else if (type === 'info') {
+            iconHtml = '<i data-lucide="info" style="width: 18px; height: 18px; color: var(--color-change)"></i>';
+        }
+        
+        toast.innerHTML = `
+            ${iconHtml}
+            <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        lucide.createIcons();
+        
+        // Animate in
+        setTimeout(() => toast.classList.add('active'), 50);
+        
+        // Auto remove
+        setTimeout(() => {
+            toast.classList.remove('active');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
 
     // Initial Load (default fetches cache or fetches fresh if cache empty)
     fetchReleaseNotes(false);
